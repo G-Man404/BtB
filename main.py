@@ -3,7 +3,7 @@ import sys
 import random
 
 size = width, height = 800, 600
-
+platform_2_width = 110
 class Object:
     def __init__(self, file_name, screen, x=0, y=0):
         self.screen = screen
@@ -51,12 +51,32 @@ class Platform(Object):
         self.objectrect.x += self.c_x
         self.get_collision()
         self.draw()
+
+
+class Platform_2(Object):
+    platform_arr = []
+
+    def __init__(self, file_name, screen, x=0, y=0):
+        super().__init__(file_name, screen, x, y)
+        self.platform_arr.append(self)
+
+    def erase(self):
+        self.platform_arr.remove(self)
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode(size)
     black = 0,0,0
     ball = Ball("ball.png", screen)
     platform = Platform("platform.png", screen)
+    t_x, t_y = (width % platform_2_width) // 2, 10
+    for j in range(2):
+        for i in range((width//platform_2_width)):
+            platform_2 = Platform_2("platform_2.png", screen, t_x, t_y)
+            t_x += 110
+        t_y += 110
+        t_x = (width % 110) // 2
     gameover = False
     while not gameover:
         for event in pygame.event.get():
@@ -71,6 +91,8 @@ def main():
                 if event.key == pygame.K_d or event.key == pygame.K_a:
                     platform.c_x = 0
         screen.fill(black)
+        for i in Platform_2.platform_arr:
+            i.draw()
         platform.move()
         ball.move(platform)
         pygame.display.flip()
