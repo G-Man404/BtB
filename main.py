@@ -24,12 +24,17 @@ class Ball(Object):
     def get_collision(self, object=False):
             if self.objectrect.x+self.objectrect.width > width or self.objectrect.x < 0:
                 self.c_x *= -1
+                self.objectrect.x += self.c_x*2
             if self.objectrect.y+self.objectrect.height > height or self.objectrect.y < 0:
                 self.c_y *= -1
+                self.objectrect.y += self.c_y*2
             if object != False:
-                if self.objectrect.x+self.objectrect.width>object.objectrect.x and self.objectrect.x < object.objectrect.x +\
-                        object.objectrect.width and self.objectrect.y+self.objectrect.height > object.objectrect.y:
+                if self.objectrect.colliderect(object.objectrect):
                     self.c_y *= -1
+                    self.objectrect.y += self.c_y
+                    if isinstance(object, Platform_2):
+                        object.erase()
+                        pass
 
     def move(self, object = False):
         self.objectrect.x += self.c_x
@@ -93,6 +98,7 @@ def main():
         screen.fill(black)
         for i in Platform_2.platform_arr:
             i.draw()
+            ball.get_collision(i)
         platform.move()
         ball.move(platform)
         pygame.display.flip()
