@@ -4,6 +4,9 @@ import random
 
 size = width, height = 800, 600
 platform_2_width = 110
+
+stopgame = False
+
 class Object:
     def __init__(self, file_name, screen, x=0, y=0):
         self.screen = screen
@@ -25,9 +28,12 @@ class Ball(Object):
             if self.objectrect.x+self.objectrect.width > width or self.objectrect.x < 0:
                 self.c_x *= -1
                 self.objectrect.x += self.c_x*2
-            if self.objectrect.y+self.objectrect.height > height or self.objectrect.y < 0:
+            if self.objectrect.y < 0:
                 self.c_y *= -1
                 self.objectrect.y += self.c_y*2
+            if self.objectrect.y+self.objectrect.height > height:
+                global stopgame
+                stopgame = True
             if object != False:
                 if self.objectrect.colliderect(object.objectrect):
                     self.c_y *= -1
@@ -70,6 +76,7 @@ class Platform_2(Object):
 
 
 def main():
+    global stopgame
     pygame.init()
     screen = pygame.display.set_mode(size)
     black = 0,0,0
@@ -83,6 +90,7 @@ def main():
         t_y += 110
         t_x = (width % 110) // 2
     gameover = False
+    max_point = len(Platform_2.platform_arr)
     while not gameover:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -95,13 +103,30 @@ def main():
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_d or event.key == pygame.K_a:
                     platform.c_x = 0
-        screen.fill(black)
-        for i in Platform_2.platform_arr:
-            i.draw()
-            ball.get_collision(i)
-        platform.move()
-        ball.move(platform)
-        pygame.display.flip()
-        pygame.time.wait(10)
+        if (len(Platform_2.platform_arr) == 0):
+            t_x, t_y = (width % platform_2_width) // 2, 10
+            for j in range(2):
+                for i in range((width // platform_2_width)):
+                    platform_2 = Platform_2("platform_2.png", screen, t_x, t_y)
+                    t_x += 110
+                t_y += 110
+                t_x = (width % 110) // 2
+
+        if stopgame:
+            screen.fill((255,0,0))
+            font = pygame.font.Font(None, 36)
+            text = font.render("Game Over! Your result: {}".format(max_point-len(Platform_2.platform_arr)).format(0), 2, (10, 10, 10))
+            textpos = text.get_rect(centerx=screen.get_width() / 2, centery = screen.get_height() / 2)
+            screen.blit(text, textpos)
+            pygame.display.flip()
+        else:
+            screen.fill(black)
+            for i in Platform_2.platform_arr:
+                i.draw()
+                ball.get_collision(i)
+            platform.move()
+            ball.move(platform)
+            pygame.display.flip()
+            pygame.time.wait(10)
     sys.exit()
 main()
