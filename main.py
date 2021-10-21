@@ -39,8 +39,14 @@ class Ball(Object):
                     self.c_y *= -1
                     self.objectrect.y += self.c_y
                     if isinstance(object, Platform_2):
-                        object.erase()
-                        pass
+                        if object.baf == 0:
+                            Platform_2.erase(object.lvl, object.pos)
+                        elif object.baf == 1:
+                            Platform_2.erase(object.lvl, object.pos)
+                            Platform_2.erase(object.lvl-1, object.pos)
+                            Platform_2.erase(object.lvl, object.pos-1)
+                            Platform_2.erase(object.lvl, object.pos+1)
+
 
     def move(self, object = False):
         self.objectrect.x += self.c_x
@@ -65,15 +71,26 @@ class Platform(Object):
 
 
 class Platform_2(Object):
-    platform_arr = []
+    platform_arr = [[]]
+    point = 0
 
-    def __init__(self, file_name, screen, x=0, y=0):
+    @staticmethod
+    def erase(lvl, pos):
+        try:
+            Platform_2.platform_arr[lvl][pos] = False
+            Platform_2.point += 1
+        except:
+            pass
+
+
+    def __init__(self, file_name, screen, x=0, y=0, new_lvl = False, baf = 1):
         super().__init__(file_name, screen, x, y)
-        self.platform_arr.append(self)
-
-    def erase(self):
-        self.platform_arr.remove(self)
-
+        if new_lvl:
+            self.platform_arr.append([])
+        self.platform_arr[-1].append(self)
+        self.lvl = len(self.platform_arr)-1
+        self.pos = len(self.platform_arr[-1])-1
+        self.baf = baf
 
 def main():
     global stopgame
@@ -89,6 +106,7 @@ def main():
             t_x += 110
         t_y += 110
         t_x = (width % 110) // 2
+
     gameover = False
     max_point = len(Platform_2.platform_arr)
     while not gameover:
@@ -122,8 +140,10 @@ def main():
         else:
             screen.fill(black)
             for i in Platform_2.platform_arr:
-                i.draw()
-                ball.get_collision(i)
+                for j in i:
+                    if j != False:
+                        j.draw()
+                        ball.get_collision(j)
             platform.move()
             ball.move(platform)
             pygame.display.flip()
