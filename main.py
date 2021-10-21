@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import  math
 
 size = width, height = 800, 600
 platform_2_width = 110
@@ -39,7 +40,33 @@ class Ball(Object):
                     self.c_y *= -1
                     self.objectrect.y += self.c_y
                     if isinstance(object, Platform_2):
-                        object.erase()
+                        if object.baf == 0:
+                            object.erase()
+                        elif object.baf == 1:
+                            baf_id = -1
+                            for i in range(len(Platform_2.platform_arr)):
+                                try:
+                                    baf_id = [i, Platform_2.platform_arr[i].index(object)]
+                                except:
+                                    pass
+                            if baf_id != -1:
+                                if baf_id[0] != 0:
+                                    Platform_2.platform_arr[baf_id[0]][baf_id[1]].erase()
+                                    Platform_2.platform_arr[baf_id[0]-1][baf_id[1]].erase()
+                                else:
+                                    object.erase()
+                                    try:
+                                        Platform_2.platform_arr[0][baf_id[1]-1].erase()
+                                    except:
+                                        pass
+                                    try:
+                                        Platform_2.platform_arr[0][baf_id[1]+1].erase()
+                                    except:
+                                        pass
+
+
+                            else:
+                                print("ERRRORRRR")
                         pass
 
     def move(self, object = False):
@@ -65,14 +92,20 @@ class Platform(Object):
 
 
 class Platform_2(Object):
-    platform_arr = []
+    platform_arr = [[]]
+    point = 0
 
-    def __init__(self, file_name, screen, x=0, y=0):
+    def __init__(self, file_name, screen, x=0, y=0, new_lvl=False):
         super().__init__(file_name, screen, x, y)
-        self.platform_arr.append(self)
-
+        if new_lvl:
+            self.platform_arr.append([])
+        self.platform_arr[-1].append(self)
+        # self.baf = math.floor(random.randint(0,110)/100)
+        self.baf = 1
     def erase(self):
-        self.platform_arr.remove(self)
+        for i in self.platform_arr:
+            i.remove(self)
+            Platform_2.point += 1
 
 
 def main():
@@ -83,14 +116,14 @@ def main():
     ball = Ball("ball.png", screen)
     platform = Platform("platform.png", screen)
     t_x, t_y = (width % platform_2_width) // 2, 10
-    for j in range(2):
+    for j in range(1):
         for i in range((width//platform_2_width)):
             platform_2 = Platform_2("platform_2.png", screen, t_x, t_y)
             t_x += 110
         t_y += 110
         t_x = (width % 110) // 2
+
     gameover = False
-    max_point = len(Platform_2.platform_arr)
     while not gameover:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -115,15 +148,20 @@ def main():
         if stopgame:
             screen.fill((255,0,0))
             font = pygame.font.Font(None, 36)
-            text = font.render("Game Over! Your result: {}".format(max_point-len(Platform_2.platform_arr)).format(0), 2, (10, 10, 10))
+            text = font.render("Game Over! Your result: {}".format(Platform_2.point).format(0), 2, (10, 10, 10))
             textpos = text.get_rect(centerx=screen.get_width() / 2, centery = screen.get_height() / 2)
             screen.blit(text, textpos)
             pygame.display.flip()
         else:
-            screen.fill(black)
-            for i in Platform_2.platform_arr:
-                i.draw()
-                ball.get_collision(i)
+            screen.fill((0, 0, 0))
+            font = pygame.font.Font(None, 36)
+            text = font.render("Your result: {}".format(Platform_2.point).format(0), 2, (255, 0, 0))
+            textpos = text.get_rect(centerx=screen.get_width()-100, centery=screen.get_height()-20)
+            screen.blit(text, textpos)
+            for j in Platform_2.platform_arr:
+                for i in j:
+                    i.draw()
+                    ball.get_collision(i)
             platform.move()
             ball.move(platform)
             pygame.display.flip()
